@@ -7,13 +7,13 @@
 macOS / Linux:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/bulbi-mulbi/gelato-student/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/bubli-mubli/gelato-student/main/install.sh | bash
 ```
 
 Windows (PowerShell):
 
 ```powershell
-irm https://raw.githubusercontent.com/bulbi-mulbi/gelato-student/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/bubli-mubli/gelato-student/main/install.ps1 | iex
 ```
 
 Флаги: `--default` — включить режим по умолчанию, `--only opencode|claude`, `--uninstall`.

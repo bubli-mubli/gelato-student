@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Gelato Student — учебный режим для OpenCode и Claude Code (macOS / Linux).
 #
-#   curl -fsSL https://raw.githubusercontent.com/bulbi-mulbi/gelato-student/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/bubli-mubli/gelato-student/main/install.sh | bash
 #   ./install.sh                 из скачанной папки
 #   ./install.sh --default       ещё и включить режим по умолчанию (OpenCode и Claude Code)
 #   ./install.sh --only claude   только Claude Code (или --only opencode)
@@ -11,7 +11,7 @@
 
 set -euo pipefail
 
-SLUG="${GELATO_REPO:-bulbi-mulbi/gelato-student}"
+SLUG="${GELATO_REPO:-bubli-mubli/gelato-student}"
 BRANCH="${GELATO_BRANCH:-main}"
 SKILLS=(gelato-hints gelato-review gelato-debug gelato-explain gelato-teach-back gelato-practice gelato-progress)
 HOME_DIR="$HOME/.gelato-student"

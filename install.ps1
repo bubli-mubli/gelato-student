@@ -1,6 +1,6 @@
 # Gelato Student — учебный режим для OpenCode и Claude Code (Windows / PowerShell).
 #
-#   irm https://raw.githubusercontent.com/bulbi-mulbi/gelato-student/main/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/bubli-mubli/gelato-student/main/install.ps1 | iex
 #   .\install.ps1 -Default        ещё и включить режим по умолчанию
 #   .\install.ps1 -Only claude    только Claude Code (или -Only opencode)
 #   .\install.ps1 -Uninstall      удалить всё, что поставил установщик, и вернуть бэкапы
@@ -14,7 +14,7 @@ param(
 )
 $ErrorActionPreference = "Stop"
 
-$Slug = if ($env:GELATO_REPO) { $env:GELATO_REPO } else { "bulbi-mulbi/gelato-student" }
+$Slug = if ($env:GELATO_REPO) { $env:GELATO_REPO } else { "bubli-mubli/gelato-student" }
 $Branch = if ($env:GELATO_BRANCH) { $env:GELATO_BRANCH } else { "main" }
 $Skills = "gelato-hints", "gelato-review", "gelato-debug", "gelato-explain", "gelato-teach-back", "gelato-practice", "gelato-progress"
 $HomeDir = Join-Path $env:USERPROFILE ".gelato-student"
