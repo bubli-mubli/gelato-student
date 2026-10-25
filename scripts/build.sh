@@ -11,7 +11,7 @@ RUN=("git status*" "git diff*" "git log*" "npm test*" "npm run test*" "npm start
   "dotnet run*" "dotnet test*" "mvn test*" "./mvnw test*" "gradle test*" "./gradlew test*" "php *" "ruby *")
 DESC="Учебный режим Gelato Student — подсказывает по ступеням, проверяет и объясняет, а код пишешь ты."
 
-mkdir -p agents/opencode agents/opencode-v1 claude
+mkdir -p agents/opencode agents/opencode-v1 claude codex/gelato-student
 
 {
   echo "---"
@@ -69,4 +69,20 @@ mkdir -p agents/opencode agents/opencode-v1 claude
   echo "- Правки файлов ученика — только по его прямой просьбе, даже если инструмент правки разрешён без подтверждения."
 } >claude/gelato-student.md
 
-echo "✓ agents/opencode/gelato-student.md, agents/opencode-v1/gelato-student.md, claude/gelato-student.md"
+{
+  echo "---"
+  echo "name: gelato-student"
+  echo "description: Включить учебный режим Gelato Student — наставник подсказывает по ступеням, проверяет и объясняет, но не пишет код за ученика. Используй, когда пользователь пишет \$gelato-student, «учебный режим», «я учусь», «не пиши за меня код»."
+  echo "---"
+  echo
+  echo "С этого момента и до конца сессии работай в учебном режиме по правилам ниже."
+  echo
+  cat agents/core.md
+  echo
+  echo "## Codex"
+  echo
+  echo "- Скиллы набора лежат в ~/.agents/skills (gelato-*): загружай нужный по таблице выше."
+  echo "- Правки файлов ученика — только по его прямой просьбе, даже если песочница разрешает запись."
+} >codex/gelato-student/SKILL.md
+
+echo "✓ agents/opencode/gelato-student.md, agents/opencode-v1/gelato-student.md, claude/gelato-student.md, codex/gelato-student/SKILL.md"

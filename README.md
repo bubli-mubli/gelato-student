@@ -1,6 +1,6 @@
 # Gelato Student
 
-Учебный режим для ИИшек-помощников по коду — **OpenCode** и **Claude Code**. Наставник не пишет код за тебя: подсказывает по ступеням, проверяет, разбирает ошибки и объясняет. Код пишешь ты.
+Учебный режим для ИИшек-помощников по коду — **OpenCode**, **Claude Code** и **Codex**. Наставник не пишет код за тебя: подсказывает по ступеням, проверяет, разбирает ошибки и объясняет. Код пишешь ты.
 
 ## Установка
 
@@ -16,10 +16,11 @@ Windows (PowerShell):
 irm https://raw.githubusercontent.com/bubli-mubli/gelato-student/main/install.ps1 | iex
 ```
 
-Флаги: `--default` — включить режим по умолчанию, `--only opencode|claude`, `--uninstall`.
+Флаги: `--default` — включить режим по умолчанию, `--only opencode|claude|codex`, `--uninstall`.
 
 - **OpenCode** — Shift+Tab (в старых версиях Tab) → `gelato-student`.
 - **Claude Code** — `/config` → Output style → **Gelato Student**.
+- **Codex** — напиши `$gelato-student` в начале сессии (с `--default` режим включён всегда).
 
 ## Что внутри
 

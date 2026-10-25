@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Gelato Student — учебный режим для OpenCode и Claude Code (macOS / Linux).
+# Gelato Student — учебный режим для OpenCode, Claude Code и Codex (macOS / Linux).
 #
 #   curl -fsSL https://raw.githubusercontent.com/bubli-mubli/gelato-student/main/install.sh | bash
 #   ./install.sh                 из скачанной папки
 #   ./install.sh --default       ещё и включить режим по умолчанию (OpenCode и Claude Code)
-#   ./install.sh --only claude   только Claude Code (или --only opencode)
+#   ./install.sh --only claude   только Claude Code (или --only opencode, --only codex)
 #   ./install.sh --uninstall     удалить всё, что поставил установщик, и вернуть бэкапы
 #
 # Нужны bash и curl (или git-клон). sudo не нужен.
@@ -18,6 +18,8 @@ HOME_DIR="$HOME/.gelato-student"
 MANIFEST="$HOME_DIR/manifest.tsv"
 OC_DIR="${OPENCODE_CONFIG_HOME:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode}"
 CC_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+CX_DIR="${CODEX_HOME:-$HOME/.codex}"
+AG_DIR="$HOME/.agents/skills"
 
 ONLY=""
 SET_DEFAULT=0
@@ -46,7 +48,7 @@ if [ "$UNINSTALL" = 1 ]; then
     rm -rf "$dest"
     if [ -n "$backup" ] && [ -e "$backup" ]; then mv "$backup" "$dest"; info "вернул $dest из бэкапа"; fi
   done <"$MANIFEST"
-  for f in "$OC_DIR/opencode.json" "$CC_DIR/settings.json"; do
+  for f in "$OC_DIR/opencode.json" "$CC_DIR/settings.json" "$CX_DIR/AGENTS.md"; do
     [ -f "$f.gelato.bak" ] && mv "$f.gelato.bak" "$f" && info "вернул $f"
     [ -f "$f.gelato.new" ] && rm -f "$f" "$f.gelato.new" && info "удалил $f"
   done
@@ -76,19 +78,23 @@ fi
 # ── куда ставить ────────────────────────────────────────────────────────────
 WANT_OC=1
 WANT_CC=1
+WANT_CX=1
 case "$ONLY" in
   "") ;;
-  opencode) WANT_CC=0 ;;
-  claude) WANT_OC=0 ;;
-  *) die "--only: opencode или claude" ;;
+  opencode) WANT_CC=0; WANT_CX=0 ;;
+  claude) WANT_OC=0; WANT_CX=0 ;;
+  codex) WANT_OC=0; WANT_CC=0 ;;
+  *) die "--only: opencode, claude или codex" ;;
 esac
 HAS_OC=0; { command -v opencode >/dev/null || [ -d "$OC_DIR" ]; } && HAS_OC=1
 HAS_CC=0; { command -v claude >/dev/null || [ -d "$CC_DIR" ]; } && HAS_CC=1
-if [ -z "$ONLY" ] && [ "$HAS_OC" = 0 ] && [ "$HAS_CC" = 0 ]; then
-  warn "Не нашёл ни OpenCode, ни Claude Code — ставлю для обоих, заработает после установки любого."
+HAS_CX=0; { command -v codex >/dev/null || [ -d "$CX_DIR" ]; } && HAS_CX=1
+if [ -z "$ONLY" ] && [ "$HAS_OC" = 0 ] && [ "$HAS_CC" = 0 ] && [ "$HAS_CX" = 0 ]; then
+  warn "Не нашёл ни OpenCode, ни Claude Code, ни Codex — ставлю для всех, заработает после установки любого."
 elif [ -z "$ONLY" ]; then
   [ "$HAS_OC" = 1 ] || WANT_OC=0
   [ "$HAS_CC" = 1 ] || WANT_CC=0
+  [ "$HAS_CX" = 1 ] || WANT_CX=0
 fi
 
 mkdir -p "$HOME_DIR"
@@ -148,6 +154,22 @@ if [ "$WANT_CC" = 1 ]; then
   ok "Claude Code: режим «Gelato Student» и ${#SKILLS[@]} скиллов → $CC_DIR"
 fi
 
+if [ "$WANT_CX" = 1 ]; then
+  put "$SRC/codex/gelato-student" "$AG_DIR/gelato-student"
+  for s in "${SKILLS[@]}"; do put "$SRC/skills/$s" "$AG_DIR/$s"; done
+  if [ "$SET_DEFAULT" = 1 ]; then
+    f="$CX_DIR/AGENTS.md"
+    mkdir -p "$CX_DIR"
+    if [ -f "$f" ]; then
+      [ -f "$f.gelato.bak" ] || [ -f "$f.gelato.new" ] || cp "$f" "$f.gelato.bak"
+    else
+      : >"$f.gelato.new"
+    fi
+    grep -q "gelato-student:begin" "$f" 2>/dev/null || printf '\n<!-- gelato-student:begin -->\nВсегда работай в учебном режиме: загрузи скилл gelato-student из ~/.agents/skills и следуй ему.\n<!-- gelato-student:end -->\n' >>"$f"
+  fi
+  ok "Codex: режим \$gelato-student и ${#SKILLS[@]} скиллов → $AG_DIR"
+fi
+
 echo
 echo "Дальше:"
 if [ "$WANT_OC" = 1 ]; then
@@ -156,6 +178,9 @@ if [ "$WANT_OC" = 1 ]; then
 fi
 if [ "$WANT_CC" = 1 ]; then
   info "Claude Code — запусти claude в папке проекта, затем /config → Output style → Gelato Student."
+fi
+if [ "$WANT_CX" = 1 ]; then
+  info "Codex — запусти codex в папке проекта и напиши \$gelato-student (перезапусти Codex, если он был открыт)."
 fi
 [ "$SET_DEFAULT" = 1 ] && info "Режим уже включён по умолчанию."
 info "Напиши «застрял» — и получишь первую подсказку, а не готовый код."

@@ -1,8 +1,8 @@
-# Gelato Student — учебный режим для OpenCode и Claude Code (Windows / PowerShell).
+# Gelato Student — учебный режим для OpenCode, Claude Code и Codex (Windows / PowerShell).
 #
 #   irm https://raw.githubusercontent.com/bubli-mubli/gelato-student/main/install.ps1 | iex
 #   .\install.ps1 -Default        ещё и включить режим по умолчанию
-#   .\install.ps1 -Only claude    только Claude Code (или -Only opencode)
+#   .\install.ps1 -Only claude    только Claude Code (или -Only opencode, -Only codex)
 #   .\install.ps1 -Uninstall      удалить всё, что поставил установщик, и вернуть бэкапы
 #
 # Если PowerShell запрещает скрипты: powershell -ExecutionPolicy Bypass -File .\install.ps1
@@ -21,6 +21,8 @@ $HomeDir = Join-Path $env:USERPROFILE ".gelato-student"
 $Manifest = Join-Path $HomeDir "manifest.tsv"
 $OcDir = if ($env:OPENCODE_CONFIG_HOME) { $env:OPENCODE_CONFIG_HOME } else { Join-Path $env:USERPROFILE ".config\opencode" }
 $CcDir = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $env:USERPROFILE ".claude" }
+$CxDir = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $env:USERPROFILE ".codex" }
+$AgDir = Join-Path $env:USERPROFILE ".agents\skills"
 
 function Ok($m) { Write-Host "✓ $m" -ForegroundColor Green }
 function Info($m) { Write-Host "  $m" }
@@ -34,7 +36,7 @@ if ($Uninstall) {
     if (Test-Path $dest) { Remove-Item $dest -Recurse -Force }
     if ($backup -and (Test-Path $backup)) { Move-Item $backup $dest; Info "вернул $dest из бэкапа" }
   }
-  foreach ($f in (Join-Path $OcDir "opencode.json"), (Join-Path $CcDir "settings.json")) {
+  foreach ($f in (Join-Path $OcDir "opencode.json"), (Join-Path $CcDir "settings.json"), (Join-Path $CxDir "AGENTS.md")) {
     if (Test-Path "$f.gelato.bak") { Move-Item "$f.gelato.bak" $f -Force; Info "вернул $f" }
     if (Test-Path "$f.gelato.new") { Remove-Item $f, "$f.gelato.new" -Force; Info "удалил $f" }
   }
@@ -56,17 +58,19 @@ if (-not $Src) {
   $Src = (Get-ChildItem $tmp -Directory | Select-Object -First 1).FullName
 }
 
-$wantOc = $true; $wantCc = $true
+$wantOc = $true; $wantCc = $true; $wantCx = $true
 switch ($Only) {
   "" {
     $hasOc = (Get-Command opencode -ErrorAction SilentlyContinue) -or (Test-Path $OcDir)
     $hasCc = (Get-Command claude -ErrorAction SilentlyContinue) -or (Test-Path $CcDir)
-    if ($hasOc -or $hasCc) { $wantOc = [bool]$hasOc; $wantCc = [bool]$hasCc }
-    else { Write-Warning "Не нашёл ни OpenCode, ни Claude Code — ставлю для обоих." }
+    $hasCx = (Get-Command codex -ErrorAction SilentlyContinue) -or (Test-Path $CxDir)
+    if ($hasOc -or $hasCc -or $hasCx) { $wantOc = [bool]$hasOc; $wantCc = [bool]$hasCc; $wantCx = [bool]$hasCx }
+    else { Write-Warning "Не нашёл ни OpenCode, ни Claude Code, ни Codex — ставлю для всех." }
   }
-  "opencode" { $wantCc = $false }
-  "claude" { $wantOc = $false }
-  default { throw "-Only: opencode или claude" }
+  "opencode" { $wantCc = $false; $wantCx = $false }
+  "claude" { $wantOc = $false; $wantCx = $false }
+  "codex" { $wantOc = $false; $wantCc = $false }
+  default { throw "-Only: opencode, claude или codex" }
 }
 
 New-Item -ItemType Directory $HomeDir -Force | Out-Null
@@ -121,8 +125,25 @@ if ($wantCc) {
   Ok "Claude Code: режим «Gelato Student» и $($Skills.Count) скиллов → $CcDir"
 }
 
+if ($wantCx) {
+  Put (Join-Path $Src "codex\gelato-student") (Join-Path $AgDir "gelato-student")
+  foreach ($s in $Skills) { Put (Join-Path $Src "skills\$s") (Join-Path $AgDir $s) }
+  if ($Default) {
+    $f = Join-Path $CxDir "AGENTS.md"
+    New-Item -ItemType Directory $CxDir -Force | Out-Null
+    if (Test-Path $f) {
+      if (-not (Test-Path "$f.gelato.bak") -and -not (Test-Path "$f.gelato.new")) { Copy-Item $f "$f.gelato.bak" }
+    } else { New-Item -ItemType File "$f.gelato.new" | Out-Null }
+    if (-not ((Test-Path $f) -and (Select-String -Path $f -Pattern "gelato-student:begin" -Quiet))) {
+      Add-Content $f "`n<!-- gelato-student:begin -->`nВсегда работай в учебном режиме: загрузи скилл gelato-student из ~/.agents/skills и следуй ему.`n<!-- gelato-student:end -->"
+    }
+  }
+  Ok "Codex: режим `$gelato-student и $($Skills.Count) скиллов → $AgDir"
+}
+
 Write-Host ""
 Write-Host "Дальше:"
 if ($wantOc) { Info "OpenCode — запусти opencode в папке проекта и нажми Shift+Tab (в старых версиях Tab), пока не появится gelato-student." }
 if ($wantCc) { Info "Claude Code — запусти claude в папке проекта, затем /config → Output style → Gelato Student." }
+if ($wantCx) { Info "Codex — запусти codex в папке проекта и напиши `$gelato-student (перезапусти Codex, если он был открыт)." }
 Info "Напиши «застрял» — и получишь первую подсказку, а не готовый код."
